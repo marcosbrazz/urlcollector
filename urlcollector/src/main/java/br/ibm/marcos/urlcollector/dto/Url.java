@@ -1,11 +1,10 @@
-package br.ibm.marcos.urlcollector.domain;
+package br.ibm.marcos.urlcollector.dto;
 
 public class Url {
 	
 	private String _rev;
     private String _id;	
 	private String url;
-	private String parentId;
 	
 	public Url() {
 	}
@@ -37,14 +36,6 @@ public class Url {
 
 	public void set_id(String _id) {
 		this._id = _id;
-	}
-
-	public String getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
 	}
 	
 }

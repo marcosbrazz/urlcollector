@@ -11,7 +11,7 @@ import org.jsoup.select.Elements;
 import org.junit.Assert;
 import org.junit.Test;
 
-import br.ibm.marcos.urlcollector.domain.Url;
+import br.ibm.marcos.urlcollector.dto.Url;
 
 public class UrlCollectorEngineTest {
 
