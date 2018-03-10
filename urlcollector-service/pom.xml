@@ -4,7 +4,7 @@
 	<groupId>br.ibm.marcos.urlcollector</groupId>
 	<artifactId>urlcollector</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>urlcollector</name>
+	<name>urlcollector-service</name>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
