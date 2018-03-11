@@ -1,1 +1,2 @@
-echo "BUILD.SH"
+echo "START BUILD.SH"
+echo "END BUILD.SH"
