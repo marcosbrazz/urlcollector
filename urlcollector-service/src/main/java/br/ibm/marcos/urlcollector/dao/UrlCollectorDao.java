@@ -1,5 +1,8 @@
 package br.ibm.marcos.urlcollector.dao;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -8,16 +11,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.cloudant.client.api.Database;
 import com.cloudant.client.api.model.IndexField;
 import com.cloudant.client.api.model.IndexField.SortOrder;
 import com.cloudant.client.api.model.Response;
+import com.cloudant.client.api.views.AllDocsRequestBuilder;
 
 import br.ibm.marcos.urlcollector.dto.Url;
-import br.ibm.marcos.urlcollector.exception.UrlCollectorBadRequest;
 import br.ibm.marcos.urlcollector.exception.UrlCollectorException;
 
 @Component
@@ -49,9 +51,13 @@ public class UrlCollectorDao {
 		return listUrl.get(0);
 	}
 
-	public List<Url> getLinks() throws UrlCollectorException {
+	public List<Url> getLinks(Integer first) throws UrlCollectorException {
 		try {
-			return db.getAllDocsRequestBuilder().includeDocs(true).build().getResponse().getDocsAs(Url.class);
+			AllDocsRequestBuilder builder = db.getAllDocsRequestBuilder().includeDocs(true);
+			if(first != null) {
+				builder.limit(first);
+			}
+			return builder.build().getResponse().getDocsAs(Url.class);
 		} catch (IOException e) {
 			throw new UrlCollectorException(e);
 		}
@@ -69,12 +75,13 @@ public class UrlCollectorDao {
 	
 	private void assertOk(String method, Response... resp) {
 		Stream<Response> rStream = Arrays.stream(resp);
-		Predicate<Response> p =  r -> HttpStatus.OK.value() != r.getStatusCode();
+		Predicate<Response> p =  r -> OK.value() != r.getStatusCode() && CREATED.value() != r.getStatusCode();
 		if(rStream.anyMatch(p)) {
 			String error = rStream.filter(p)
 					.map(r -> String.format("ERR_CODE: %s - ERROR: %s - REASON: %s", r.getStatusCode(), r.getError(), r.getReason()))
 					.collect(Collectors.joining("\n"));
 			//TODO LOG Error
+			System.err.println(error);
 			throw new UrlCollectorException(error);
 		}
 	}

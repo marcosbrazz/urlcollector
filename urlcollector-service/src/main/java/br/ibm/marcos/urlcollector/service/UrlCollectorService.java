@@ -1,9 +1,11 @@
 package br.ibm.marcos.urlcollector.service;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,27 +17,37 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.ibm.marcos.urlcollector.dao.UrlCollectorDao;
 import br.ibm.marcos.urlcollector.dto.Url;
-import br.ibm.marcos.urlcollector.engine.UrlCollectorEngine;
+import br.ibm.marcos.urlcollector.engine.UrlCollectorExecutor;
 import br.ibm.marcos.urlcollector.exception.LinksNotFoundException;
 
 @RestController
 public class UrlCollectorService {
 	
 	@Autowired
-	private UrlCollectorEngine engine;
+	private UrlCollectorExecutor executor;
 	
 	@Autowired
 	private UrlCollectorDao dao;
 	
-	@RequestMapping(method=PUT, path="/collect")
-	public @ResponseBody String collectUrls(@RequestParam(value="url") String urlPath) {
-		engine.collect(urlPath);
+	@RequestMapping(method=POST, path="/collect", produces="text/plain")
+	public @ResponseBody String collectUrls(@RequestParam(value="url") String urlPath, @RequestParam(value="depth", required=false) Integer depth) {
+		executor.startCollector(urlPath, depth);
 		return HttpStatus.OK.name();
 	}
 	
+	@RequestMapping(method=GET,  path="/status")
+	public @ResponseBody Map<String, Boolean> checkUrlProcess() {
+		return executor.checkCollectors();
+	}
+	
+	@RequestMapping(method=PUT,  path="/stop")
+	public void checkUrlProcess(@RequestParam(value="url") String urlPath) {
+		executor.stopExecutor(urlPath);
+	}
+	
 	@RequestMapping(method=GET, path="/links")
-	public @ResponseBody List<String> getLinks() {
-		List<Url> links = dao.getLinks();
+	public @ResponseBody List<String> getLinks(@RequestParam(value="first", required=false) Integer first) {
+		List<Url> links = dao.getLinks(first);
 		if(links == null || links.isEmpty()) {
 			throw new LinksNotFoundException();
 		}

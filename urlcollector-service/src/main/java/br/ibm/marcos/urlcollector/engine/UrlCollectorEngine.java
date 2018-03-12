@@ -1,6 +1,8 @@
 package br.ibm.marcos.urlcollector.engine;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,26 +20,29 @@ import br.ibm.marcos.urlcollector.dao.UrlCollectorDao;
 
 
 @Component
-public class UrlCollectorEngine {
+public class UrlCollectorEngine implements Runnable {
 	
 	@Autowired
 	private UrlCollectorDao dao;
 	
 	private Stack<String> urlStack;
 	private Set<String> urlIndex;
-	
-	private void init() {
+	private String baseUrlStr;
+	private Integer depthLimit;
+	private Stack<Integer> linksByDepth;
+	private Boolean stopSignal;
+
+	public UrlCollectorEngine() {
 		this.urlStack = new Stack<String>();
 		this.urlIndex = new HashSet<String>();
+		this.linksByDepth = new Stack<Integer>();
+		this.stopSignal = false;
 	}
 	
-
-	public void collect(String baseUrlStr) {
-		this.init();
-		Validate.notEmpty(baseUrlStr, "A URL must be supplied");
-		this.pushUrl(baseUrlStr);
-		dao.saveUrl(baseUrlStr);
-		while (!urlStack.empty()) {
+	private void collect() {
+		Validate.notEmpty(this.baseUrlStr, "A URL must be supplied");
+		this.pushUrls(Arrays.asList(this.baseUrlStr));
+		while (!urlStack.empty() && !stopSignal) {
 			String baseUrl = this.popUrl();
 			System.out.println(baseUrl);
 			Document doc;
@@ -53,33 +58,77 @@ public class UrlCollectorEngine {
 				links = new Elements();
 				imports = new Elements();
 			}
-			links.addAll(imports);
-			List<String> childUrls = links.parallelStream().map(link -> {
+			links.addAll(imports);		
+			Set<String> childUrls = links.parallelStream().map(link -> {
 				String child = link.absUrl("href");
-				System.out.println(" - > " + child); // TODO logar
-				this.pushUrl(child);
+				System.out.println(this.currentDepth() + " - > " + child); // TODO logar
 				return child;
-			}).collect(Collectors.toList());
-			dao.saveUrl(childUrls);
-			
+			}).collect(Collectors.toSet());
+			this.pushUrls(childUrls);			
 		}
 		
 	}
 	
+	public void stop() {
+		this.stopSignal = true;
+	}
+	
+	private Integer currentDepth() {
+		return this.linksByDepth.size();
+	}
+	
+	
 	/**
-	 * This method prevents duplicate the mining of URLs 
+	 * This method prevents duplicate the mining of URLs and control mining depth limit 
 	 * 
-	 * @param url
+	 * @param urls
 	 */
-	private void pushUrl(String url) {
-		if(!this.urlIndex.contains(url)) {
-			urlStack.push(url);
-			urlIndex.add(url);
+	private void pushUrls(Collection<String> urls) {
+		List<String> uniqueUrls = urls.stream()
+			.filter(url -> !this.urlIndex.contains(url))
+			.collect(Collectors.toList());
+		if(uniqueUrls.size() > 0 && (this.depthLimit == null || this.currentDepth() < this.depthLimit)) {
+			this.urlStack.addAll(uniqueUrls);
+			this.linksByDepth.add(uniqueUrls.size());
+			this.dao.saveUrl(uniqueUrls);			
 		}
 	}
 	
 	private String popUrl() {
+		if(this.depthLimit != null) {
+			Integer levelLinks = this.linksByDepth.pop();
+			levelLinks--;
+			if(levelLinks > 0) {
+				this.linksByDepth.push(levelLinks);
+			}
+		}
 		return this.urlStack.pop();
+	}
+
+
+
+	public String getBaseUrlStr() {
+		return baseUrlStr;
+	}
+
+
+	public void setBaseUrlStr(String baseUrlStr) {
+		this.baseUrlStr = baseUrlStr;
+	}
+
+
+	public Integer getDepth() {
+		return depthLimit;
+	}
+
+
+	public void setDepth(Integer depth) {
+		this.depthLimit = depth;
+	}
+
+	@Override
+	public void run() {
+		this.collect();
 	}
 	
 
