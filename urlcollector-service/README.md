@@ -10,6 +10,7 @@ It's very simple:  Call the service </collect> providing a web page URL as param
 
 ### Services
 
+the services are accessible by this url template: http://<ip>:<port>/urlcollector/<resource>
 
 #### Start a URL collector process.
 
@@ -73,10 +74,14 @@ GET /links?first=<integer>
 2.  Install [IBM Cloud CLI](https://console.bluemix.net/docs/cli/reference/bluemix_cli/get_started.html#getting-started);
 3.  Install [Kubernetes CLI](https://kubernetes.io/docs/user-guide/prereqs/);
 4.  [Created an API KEY](https://console.bluemix.net/docs/iam/login_fedid.html#federated_id);
+5.  Create a Cloudant database service instance and setup an empty database.
 
 ### Prepare source
  
-*  In the source file, edit the file urlcollector-service.yaml. Replace the value of the property image to point to your image registry.
+ In the source file:
+
+*  Edit the file urlcollector-service.yaml. Replace the value of the property image to point to your image registry.
+*  Edit the file application.yml to configure the Cloudant database parameters.
  
 ### Run build script 
  
@@ -104,9 +109,3 @@ NAME                    CLUSTER-IP     EXTERNAL-IP   PORT(S)                    
 account-summary         10.10.10.74    <nodes>       80:30080/TCP                                                                 2d
 ...
 ```
-
- 
-
-
-
-
