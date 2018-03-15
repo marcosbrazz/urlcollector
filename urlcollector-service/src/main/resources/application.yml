@@ -3,6 +3,7 @@ spring:
   application:
      name: urlcollector
 
+logging.level.br.ibm.marcos: DEBUG
 
 # Server configuration
 server:

@@ -13,6 +13,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,8 @@ public class UrlCollectorEngine implements Runnable {
 	
 	@Autowired
 	private UrlCollectorDao dao;
+	
+	private final Logger logger = LoggerFactory.getLogger(UrlCollectorEngine.class);
 	
 	private Stack<String> urlStack;
 	private Set<String> urlIndex;
@@ -44,7 +48,7 @@ public class UrlCollectorEngine implements Runnable {
 		this.pushUrls(Arrays.asList(this.baseUrlStr));
 		while (!urlStack.empty() && !stopSignal) {
 			String baseUrl = this.popUrl();
-			System.out.println(baseUrl);
+			logger.debug(baseUrl);
 			Document doc;
 			Elements links;
 			Elements imports;
@@ -53,15 +57,14 @@ public class UrlCollectorEngine implements Runnable {
 				links = doc.select("a[href]");
 				imports = doc.select("link[href]");
 			} catch (IllegalArgumentException | IOException e) {
-				// TODO logar !
-				System.err.println("Not a document: " + baseUrl);
+				logger.debug("Not a document: " + baseUrl);
 				links = new Elements();
 				imports = new Elements();
 			}
 			links.addAll(imports);		
 			Set<String> childUrls = links.parallelStream().map(link -> {
 				String child = link.absUrl("href");
-				System.out.println(this.currentDepth() + " - > " + child); // TODO logar
+				logger.debug(this.currentDepth() + " - > " + child);
 				return child;
 			}).collect(Collectors.toSet());
 			this.pushUrls(childUrls);			
@@ -70,6 +73,7 @@ public class UrlCollectorEngine implements Runnable {
 	}
 	
 	public void stop() {
+		logger.info("Collector stop issued for " + this.baseUrlStr);
 		this.stopSignal = true;
 	}
 	
@@ -128,7 +132,9 @@ public class UrlCollectorEngine implements Runnable {
 
 	@Override
 	public void run() {
+		logger.info("Started collector process for " + this.baseUrlStr);
 		this.collect();
+		logger.info("Finished collector process for " + this.baseUrlStr);
 	}
 	
 

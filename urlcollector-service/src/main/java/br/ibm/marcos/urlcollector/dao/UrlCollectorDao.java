@@ -10,6 +10,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +29,8 @@ public class UrlCollectorDao {
 
 	@Autowired
 	private Database db;
+	
+	private final Logger logger = LoggerFactory.getLogger(UrlCollectorDao.class);
 
 	public void saveUrl(List<String> urlPaths) {
 		List<Url> url = urlPaths.stream()
@@ -63,15 +67,6 @@ public class UrlCollectorDao {
 		}
 	}
 	
-//	public List<Url> getLinks(String baseUrlStr) throws UrlCollectorException {		
-//		if(baseUrl == null) {
-//			throw new UrlCollectorException("baseUrl cannot be null");
-//		}		
-//		db.createIndex("queryByParentId", null, "json",
-//				new IndexField[] { new IndexField("parentId", SortOrder.asc) });
-//		return db.findByIndex("{\"parentId\" : \"" + baseUrl.get_id() + "\"}", Url.class);
-//	}
-
 	
 	private void assertOk(String method, Response... resp) {
 		Stream<Response> rStream = Arrays.stream(resp);
@@ -80,8 +75,7 @@ public class UrlCollectorDao {
 			String error = rStream.filter(p)
 					.map(r -> String.format("ERR_CODE: %s - ERROR: %s - REASON: %s", r.getStatusCode(), r.getError(), r.getReason()))
 					.collect(Collectors.joining("\n"));
-			//TODO LOG Error
-			System.err.println(error);
+			logger.warn(error);
 			throw new UrlCollectorException(error);
 		}
 	}
