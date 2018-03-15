@@ -4,6 +4,10 @@ USER root
 
 # Install JVM
 RUN apk add --update curl openjdk8=8.151.12-r0 && \
+	echo "PASS_MAX_DAYS 90" >> /etc/login.defs && \
+	echo "PASS_MIN_DAYS 1" >> /etc/login.defs && \
+	mkdir -p /etc/pam.d && \
+	echo "password    [success=1 default=ignore]  pam_unix.so minlen=8 sha512" >> /etc/pam.d/common-password && \
 	rm -rf /var/cache/apk/* ;
 		
 

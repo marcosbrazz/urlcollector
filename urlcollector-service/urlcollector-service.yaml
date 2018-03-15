@@ -34,9 +34,9 @@ spec:
         tier: compute
     spec:
       containers:
-      - image: registry.ng.bluemix.net/mhbraz/url-collector-pipeline
+      - image: registry.ng.bluemix.net/mhbraz/url-collector-service:latest
         imagePullPolicy: Always
-        name: url-collector-pipeline
+        name: url-collector-container
         ports:
             - containerPort: 8080
       restartPolicy: Always
