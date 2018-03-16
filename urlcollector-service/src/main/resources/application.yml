@@ -1,0 +1,19 @@
+# Spring properties
+spring:
+  application:
+     name: urlcollector
+
+logging.level.br.ibm.marcos: DEBUG
+
+# Server configuration
+server:
+  context-path: /collector
+  port: 8080
+
+
+# Cloudant Configuration
+cloudant:
+    db: urldatabase
+    username: 26a4f120-5bfd-4fc7-96b1-ea2a99830ec1-bluemix
+    password: d88110d0af5cf413761d3b1e0806617834b3dabd52f39b7938b0f356b232366b
+    url: https://26a4f120-5bfd-4fc7-96b1-ea2a99830ec1-bluemix:d88110d0af5cf413761d3b1e0806617834b3dabd52f39b7938b0f356b232366b@26a4f120-5bfd-4fc7-96b1-ea2a99830ec1-bluemix.cloudant.com
