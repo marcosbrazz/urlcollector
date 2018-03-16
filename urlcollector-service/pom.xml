@@ -63,6 +63,13 @@
 			<artifactId>cloudant-spring-boot-starter</artifactId>
 			<version>0.0.2</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.jmockit/jmockit -->
+		<dependency>
+		    <groupId>org.jmockit</groupId>
+		    <artifactId>jmockit</artifactId>
+		    <version>1.8</version>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

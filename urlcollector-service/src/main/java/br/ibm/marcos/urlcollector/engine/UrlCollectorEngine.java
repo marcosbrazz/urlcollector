@@ -1,6 +1,5 @@
 package br.ibm.marcos.urlcollector.engine;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -9,10 +8,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jsoup.Jsoup;
 import org.jsoup.helper.Validate;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +22,9 @@ public class UrlCollectorEngine implements Runnable {
 	
 	@Autowired
 	private UrlCollectorDao dao;
+	
+	@Autowired
+	private UrlDiscovery discovery;
 	
 	private final Logger logger = LoggerFactory.getLogger(UrlCollectorEngine.class);
 	
@@ -49,24 +48,7 @@ public class UrlCollectorEngine implements Runnable {
 		while (!urlStack.empty() && !stopSignal) {
 			String baseUrl = this.popUrl();
 			logger.debug(baseUrl);
-			Document doc;
-			Elements links;
-			Elements imports;
-			try {
-				doc = Jsoup.connect(baseUrl).get();
-				links = doc.select("a[href]");
-				imports = doc.select("link[href]");
-			} catch (IllegalArgumentException | IOException e) {
-				logger.debug("Not a document: " + baseUrl);
-				links = new Elements();
-				imports = new Elements();
-			}
-			links.addAll(imports);		
-			Set<String> childUrls = links.parallelStream().map(link -> {
-				String child = link.absUrl("href");
-				logger.debug(this.currentDepth() + " - > " + child);
-				return child;
-			}).collect(Collectors.toSet());
+			Set<String> childUrls = discovery.discoverUrl(baseUrlStr);
 			this.pushUrls(childUrls);			
 		}
 		

@@ -1,76 +1,87 @@
 package br.ibm.marcos.urlcollector.engine;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import br.ibm.marcos.urlcollector.dto.Url;
+import br.ibm.marcos.urlcollector.dao.UrlCollectorDao;
+import mockit.Injectable;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
 
+@RunWith(JMockit.class)
 public class UrlCollectorEngineTest {
 
-//	@Test
-//	public void testCollect() throws Exception {
-//		String url = "http://mussumipsum.com/";
-//		Url urlTree = UrlCollectorEngine.collect(url);
-//		Assert.assertNotNull(urlTree);
-//		Assert.assertNotNull(urlTree.getReferences());
-//		Assert.assertEquals(9, urlTree.getReferences().size());
-//		
-//		urlTree.getReferences().stream().forEach(
-//				childUrl -> System.out.println(childUrl.getUrl())
-//		);
-//	}
-//	
-//	@Test
-//	public void printCollectionRunning() throws Exception {
-//		String url = "http://mussumipsum.com/";
-//		UrlCollectorEngine.collect(url);
-//	}
+	@Injectable
+	private UrlCollectorDao dao ;
 	
-//	@Test
-	public void testRelativeLink() throws IOException {
-		String base = "https://www.google.com.br/intl/en/policies/privacy/";
-		Document doc = Jsoup.connect(base).get();
-		Elements links = doc.select("a[href]");
-		Elements imports = doc.select("link[href]");
-//		links.addAll(imports);
-		links.stream().forEach(
-			l -> {
-				Element l2 = l;
-				System.out.println(l.absUrl("href"));
-			
-		});
+	@Injectable
+	private UrlDiscovery discovery;
+	
+	@Tested
+	private UrlCollectorEngine engine;
+	
+	private int iterations;
+	
+	private int itLimit;	
+	
+	@Test
+	public void testCollector() {
+		this.iterations = 0;
+		this.itLimit = 3;
+		String baseUrl = "http://mussumipsum.com";
+		List<String> pResult = new ArrayList<String>();
+		
+		new MockUp<UrlCollectorDao>() {			
+			@Mock
+			void saveUrl(String url) {
+				pResult.add(url);
+			}
+			@Mock
+			void saveUrl(List<String> url) {
+				pResult.addAll(url);
+			}
+		};
+		
+		new MockUp<UrlDiscovery>() {
+			@SuppressWarnings("unchecked")
+			@Mock
+			Set<String> discoverUrl(String url) {
+				if(iterations < itLimit) {
+					iterations ++;
+					return new HashSet<String>(getSavedUrls());
+				}
+				return Collections.EMPTY_SET;
+			}
+		};
+				
+		
+		engine.setBaseUrlStr(baseUrl);
+		engine.setDepth(3);
+		engine.run();
+		
+		Assert.assertEquals(10, pResult.size());
+		Assert.assertTrue(pResult.contains("http://mussumipsum.com"));
+		Assert.assertTrue(pResult.contains("http://g1.globo.com/al/alagoas/noticia/2013/12/diario-oficial-de-al-surpreende-ao-publicar-texto-que-remete-ao-mussum.html"));
+		Assert.assertTrue(pResult.contains("http://github.com/diegofelipece/"));
+		
 	}
 	
-//	@Test
-//	public void testChildrem()  throws Exception {
-//		String url = "http://mussumipsum.com/";
-//		Document doc = Jsoup.connect(url).get();
-//		Elements links = doc.select("a[href]");
-//		Elements imports = doc.select("link[href]");
-//		List<Url> linkList = links.parallelStream().map(
-//				link -> 	{
-//					Url url2 = new Url(link.attr("href"));
-//					System.out.println(link.children().size());
-//					List<Url> url2childrem = link.children().parallelStream()
-//						.filter(	l3 -> l3.hasAttr("href")	)
-//						.map(l3 -> new Url(l3.attr("href")))
-//						.collect(Collectors.toList());
-//					url2.setReferences(url2childrem);
-//					return url2;
-//				}
-//		).collect(Collectors.toList());
-//		
-////		linkList.stream()
-////			.forEach(link -> {
-////				System.out.println(link.getUrl() + " " + link.getReferences().size());
-////			});
-//	}
+	private List<String> getSavedUrls() {
+			return Arrays.asList(
+					"http://mussumipsum.com/assets/favicons/apple-icon-76x76.png",
+					"http://github.com/diegofelipece/",
+					"http://g1.globo.com/al/alagoas/noticia/2013/12/diario-oficial-de-al-surpreende-ao-publicar-texto-que-remete-ao-mussum.html"
+			);
+	}
+
 }

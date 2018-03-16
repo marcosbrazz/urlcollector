@@ -10,7 +10,7 @@ It's very simple:  Call the service </collect> providing a web page URL as param
 
 ### Services
 
-the services are accessible by this url template: http://<ip>:<port>/urlcollector/<resource>
+the services are accessible by this url template: http://_ip:port_/urlcollector/_resource_
 
 #### Start a URL collector process.
 
@@ -25,7 +25,7 @@ POST /collect?url=<web_page_url>&depth=<integer>
 
 ```
 
-> IMPORTATNT: The depth parameters comes as an edge limit of the search space in depth for the URL discovery process. It also improves the process robustness by avoiding the process stack to grow indefinitely. So it's a recommend practice to provide the depth parameter.   
+> IMPORTATNT: The depth parameters comes as an edge limit of the search space in depth for the URL discovery process. It also improves the process robustness by avoiding the process stack to grow indefinitely. So it's a recommended to provide the depth parameter.   
 
 #### Stop a URL collector process
 
@@ -42,7 +42,8 @@ PUT /stop?url=<web_page_url>
 
 ```bashp
 GET /status
-Returns a list of the issued collector processes, listing the starting URL and a boolean indicating if the process is done (true). 
+Returns a list of the issued collector processes, 
+listing the starting URL and a boolean indicating if the process is done (true). 
 {
 	"http://mussumipsum.com/":false,
 	"http://www.pudim.com.br/":true
@@ -55,7 +56,8 @@ Returns a list of the issued collector processes, listing the starting URL and a
 ```bashp
 GET /links?first=<integer>
 
-*   first (optional): Return the first n URLs found in database. If omitted, all of the URLs stored in database are returned.  
+*   first (optional): Return the first n URLs found in database. If omitted, 
+all of the URLs stored in database are returned.  
 [
     "http://diegoesteves.ink/en/distintos/",
     "http://diegoesteves.ink/wp/wp-content/themes/diego-esteves/style.css?v=1.0.4",
@@ -89,7 +91,7 @@ GET /links?first=<integer>
 
 Run the build.sh as follows:
 ```bash
-$ ./build.sh -n <registry_namespace> -k <api-key file> -r <region> -c <cluster-name>
+$ ./build.sh -n <docker-registry> -k <api-key file> -r <region> -c <cluster-name>
 ```
 ## Access services on IBM Cloud Container
 
